@@ -67,6 +67,8 @@ src/main/java/com/pinapp/challenge/
 - ✅ Spring Security with HTTP Basic authentication
 - ✅ PostgreSQL database support
 - ✅ H2 in-memory database for development
+- ✅ Flyway database migrations with version control
+- ✅ Pre-seeded database with 10 sample clients
 - ✅ Comprehensive unit tests
 - ✅ **Swagger/OpenAPI documentation with interactive UI**
 
@@ -162,10 +164,12 @@ Authorization: Basic YWRtaW46cGFzc3dvcmQ=
 
 #### Development (H2)
 - No setup required - uses in-memory H2 database
+- Flyway migrations run automatically on startup
 - Access H2 console at: http://localhost:8080/h2-console
 - JDBC URL: `jdbc:h2:mem:testdb`
 - Username: `sa`
 - Password: (empty)
+- Database comes pre-seeded with 10 sample clients
 
 #### Production (PostgreSQL with Docker)
 
@@ -222,6 +226,88 @@ Authorization: Basic YWRtaW46cGFzc3dvcmQ=
 - **Database:** clientdb
 - **Username:** postgres
 - **Password:** postgres
+
+**Note:** Database schema is automatically created and updated using Flyway migrations. Sample data is automatically seeded on first run.
+
+### Database Migrations (Flyway)
+
+The project uses **Flyway** for database version control and migrations. All migrations are automatically applied on application startup.
+
+#### Migration Files Location
+```
+src/main/resources/db/migration/
+├── V1__create_clients_table.sql    # Initial schema
+└── V2__insert_sample_clients.sql   # Seed data (10 sample clients)
+```
+
+#### Migration Details
+
+**V1__create_clients_table.sql** - Creates the clients table with:
+- Auto-incrementing ID (BIGSERIAL)
+- First name and last name (VARCHAR, NOT NULL)
+- Age (INTEGER with positive check constraint)
+- Birth date (DATE, NOT NULL)
+- Indexes on birth_date and full name for performance
+
+**V2__insert_sample_clients.sql** - Seeds the database with 10 sample clients:
+- Juan Pérez (30 years old)
+- María García (25 years old)
+- Carlos Rodríguez (45 years old)
+- Ana Martínez (28 years old)
+- Luis López (35 years old)
+- Carmen Sánchez (42 years old)
+- José Fernández (38 years old)
+- Laura González (33 years old)
+- Miguel Díaz (50 years old)
+- Isabel Torres (29 years old)
+
+#### Creating New Migrations
+
+To create a new migration:
+
+1. **Create a new SQL file** in `src/main/resources/db/migration/`
+2. **Follow the naming convention:** `V{version}__{description}.sql`
+   - Example: `V3__add_email_column.sql`
+3. **Write your SQL changes:**
+   ```sql
+   ALTER TABLE clients ADD COLUMN email VARCHAR(255);
+   ```
+4. **Restart the application** - Flyway will automatically apply the migration
+
+#### Flyway Commands
+
+**View migration status:**
+```bash
+mvn flyway:info
+```
+
+**Validate migrations:**
+```bash
+mvn flyway:validate
+```
+
+**Repair migration checksum issues:**
+```bash
+mvn flyway:repair
+```
+
+**Clean database (⚠️ DESTRUCTIVE - removes all data):**
+```bash
+mvn flyway:clean
+```
+
+#### Configuration
+
+Flyway is configured in `application.properties`:
+```properties
+spring.flyway.enabled=true
+spring.flyway.locations=classpath:db/migration
+spring.flyway.baseline-on-migrate=true
+spring.flyway.validate-on-migrate=true
+```
+
+- `baseline-on-migrate=true` - Allows migration of existing databases
+- `validate-on-migrate=true` - Validates applied migrations before running new ones
 
 ### API Authentication 🔐
 
@@ -498,6 +584,7 @@ networks:
 - **Spring Boot Actuator** (health checks & monitoring)
 - **PostgreSQL 16**
 - **H2 Database** (development)
+- **Flyway** (database migrations)
 - **Docker & Docker Compose**
 - **Lombok**
 - **Maven**
