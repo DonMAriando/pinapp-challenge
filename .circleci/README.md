@@ -182,13 +182,23 @@ resource_class: large    # 4 vCPUs, 8GB RAM
 
 ### Common Issues
 
-**1. Docker Hub Rate Limits**
+**1. JaCoCo Check Fails with "parameters 'rules' for goal... are missing or invalid"**
+```
+Failed to execute goal org.jacoco:jacoco-maven-plugin:0.8.11:check
+The parameters 'rules' for goal org.jacoco:jacoco-maven-plugin:0.8.11:check are missing or invalid
+```
+**Solution:** This happens when running `mvn jacoco:check` directly from command line. The JaCoCo check goal is configured in pom.xml to run during the `verify` phase. Use one of these commands instead:
+- `mvn verify` - Runs tests and coverage check
+- `mvn verify -DskipTests` - Checks coverage on existing test results
+The CircleCI configuration uses `mvn verify -DskipTests` after running tests separately.
+
+**2. Docker Hub Rate Limits**
 ```
 Error: toomanyrequests: You have reached your pull rate limit
 ```
 **Solution:** Add Docker Hub credentials (see setup instructions)
 
-**2. Out of Memory**
+**3. Out of Memory**
 ```
 java.lang.OutOfMemoryError: Java heap space
 ```
@@ -198,12 +208,12 @@ environment:
   MAVEN_OPTS: -Xmx4096m
 ```
 
-**3. Tests Failing in CI but Passing Locally**
+**4. Tests Failing in CI but Passing Locally**
 - Check environment differences
 - Ensure H2 database is properly configured
 - Review CircleCI logs for specific errors
 
-**4. Coverage Threshold Not Met**
+**5. Coverage Threshold Not Met**
 ```
 Rule violated for bundle challenge
 ```

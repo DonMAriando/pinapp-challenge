@@ -332,9 +332,15 @@ The project uses **JaCoCo** (Java Code Coverage) to ensure high-quality code wit
 
 3. **Verify coverage thresholds:**
    ```bash
+   # Run tests and check coverage
    mvn verify
+   
+   # Or check coverage on existing test results
+   mvn verify -DskipTests
    ```
    This will fail the build if coverage is below the required thresholds.
+   
+   **Note:** The `jacoco:check` goal is bound to the `verify` phase in pom.xml. Running `mvn jacoco:check` directly from the command line will fail with a "parameters 'rules' are missing" error.
 
 #### Coverage Report Structure
 ```

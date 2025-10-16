@@ -83,7 +83,7 @@ jobs:
       
       - run:
           name: Verify Coverage Thresholds
-          command: mvn jacoco:check
+          command: mvn verify -DskipTests
           when: always
 
   verify:
