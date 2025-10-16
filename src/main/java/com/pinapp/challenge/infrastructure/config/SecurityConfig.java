@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 
 /**
@@ -31,9 +32,13 @@ public class SecurityConfig {
     private final SecurityProperties securityProperties;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
         http
+            // Enable CORS BEFORE any other security config
+            .cors(cors -> cors.configurationSource(corsConfigurationSource))
+            // Disable CSRF (not needed for stateless API with Basic Auth)
             .csrf(csrf -> csrf.disable())
+            // Configure authorization
             .authorizeHttpRequests(authz -> authz
                 // Public endpoints - Swagger and H2 console
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**", "/v3/api-docs/**").permitAll()
@@ -43,8 +48,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().authenticated()
             )
+            // HTTP Basic Auth
             .httpBasic(httpBasic -> httpBasic.realmName("Client API"))
-            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));  // For H2 console
+            // Headers config
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.sameOrigin())  // For H2 console
+                .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; frame-ancestors 'self'; form-action 'self'"))
+            );
 
         return http.build();
     }

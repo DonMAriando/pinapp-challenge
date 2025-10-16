@@ -1,0 +1,45 @@
+# This file specifies files that are *not* uploaded to Google Cloud
+# using gcloud commands. It's similar to .gitignore
+
+# Git files
+.git
+.gitignore
+.github/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Maven build outputs
+target/
+!target/*.jar
+
+# Test files
+src/test/
+
+# Documentation
+*.md
+!README.md
+
+# CI/CD (we use Cloud Build instead)
+.circleci/
+
+# Local development
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*~
+

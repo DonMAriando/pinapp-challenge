@@ -137,281 +137,31 @@ Authorization: Basic YWRtaW46cGFzc3dvcmQxMjM=
 }
 ```
 
-## Setup Instructions
+## Deployment to Google Cloud Platform (GCP) 
 
-### Prerequisites
-- Java 21
-- Maven 3.6+
-- Docker & Docker Compose (for PostgreSQL)
-- PostgreSQL (optional, if not using Docker)
-- H2 Database (automatically included for development)
-
-### Running the Application
-
-1. **Clone and navigate to the project:**
-   ```bash
-   cd cursor
-   ```
-
-2. **Run with development profile (H2 database):**
-   ```bash
-   mvn spring-boot:run -Dspring-boot.run.profiles=dev
-   ```
-
-3. **Run with production profile (PostgreSQL):**
-   ```bash
-   mvn spring-boot:run
-   ```
-
-### Database Setup
-
-#### Development (H2)
-- No setup required - uses in-memory H2 database
-- Flyway migrations run automatically on startup
-- Access H2 console at: http://localhost:8080/h2-console
-- JDBC URL: `jdbc:h2:mem:testdb`
-- Username: `sa`
-- Password: (empty)
-- Database comes pre-seeded with 10 sample clients
-
-#### Production (PostgreSQL with Docker)
-
-**Option 1: Using Docker Compose (Recommended)**
-
-1. **Start PostgreSQL with Docker Compose:**
-   ```bash
-   docker-compose up -d
-   ```
-
-2. **Verify containers are running:**
-   ```bash
-   docker-compose ps
-   ```
-
-3. **Run the application:**
-   ```bash
-   mvn spring-boot:run
-   ```
-
-4. **Access pgAdmin (Optional):**
-   - URL: http://localhost:5050
-   - Email: `admin@challenge.com`
-   - Password: `admin`
-   - Add server connection:
-     - Host: `postgres`
-     - Port: `5432`
-     - Database: `clientdb`
-     - Username: `postgres`
-     - Password: `postgres`
-
-5. **Stop the containers:**
-   ```bash
-   docker-compose down
-   ```
-
-6. **Remove containers and volumes:**
-   ```bash
-   docker-compose down -v
-   ```
-
-**Option 2: Manual PostgreSQL Installation**
-
-1. Install PostgreSQL
-2. Create database:
-   ```sql
-   CREATE DATABASE clientdb;
-   ```
-3. Update `application.properties` with your PostgreSQL credentials
-
-**Database Configuration:**
-- **Host:** localhost
-- **Port:** 5432
-- **Database:** clientdb
-- **Username:** postgres
-- **Password:** postgres
-
-**Note:** Database schema is automatically created and updated using Flyway migrations. Sample data is automatically seeded on first run.
-
-### Database Migrations (Flyway)
-
-The project uses **Flyway** for database version control and migrations. All migrations are automatically applied on application startup.
-
-#### Migration Files Location
+### Quick Start
+If you introduce new changes, you should run the following script in **Windows (PowerShell):**
+```powershell
+.\rebuild-and-deploy.ps1
 ```
-src/main/resources/db/migration/
-├── V1__create_clients_table.sql    # Initial schema
-└── V2__insert_sample_clients.sql   # Seed data (10 sample clients)
-```
+### View Logs and Monitor
 
-#### Migration Details
+**Via Console:**
 
-**V1__create_clients_table.sql** - Creates the clients table with:
-- Auto-incrementing ID (BIGSERIAL)
-- First name and last name (VARCHAR, NOT NULL)
-- Age (INTEGER with positive check constraint)
-- Birth date (DATE, NOT NULL)
-- Indexes on birth_date and full name for performance
+1. **Go to:** https://console.cloud.google.com/run
+2. **Click** on your service: `pinapp-challenge`
+3. **Click** "LOGS" tab
+4. **See** real-time logs, including Flyway migrations!
 
-**V2__insert_sample_clients.sql** - Seeds the database with 10 sample clients:
-- Juan Pérez (30 years old)
-- María García (25 years old)
-- Carlos Rodríguez (45 years old)
-- Ana Martínez (28 years old)
-- Luis López (35 years old)
-- Carmen Sánchez (42 years old)
-- José Fernández (38 years old)
-- Laura González (33 years old)
-- Miguel Díaz (50 years old)
-- Isabel Torres (29 years old)
+**Via Command Line:**
 
-#### Creating New Migrations
-
-To create a new migration:
-
-1. **Create a new SQL file** in `src/main/resources/db/migration/`
-2. **Follow the naming convention:** `V{version}__{description}.sql`
-   - Example: `V3__add_email_column.sql`
-3. **Write your SQL changes:**
-   ```sql
-   ALTER TABLE clients ADD COLUMN email VARCHAR(255);
-   ```
-4. **Restart the application** - Flyway will automatically apply the migration
-
-#### Flyway Commands
-
-**View migration status:**
 ```bash
-mvn flyway:info
+# View logs
+gcloud run services logs read pinapp-challenge --region us-central1 --limit 50
+
+# Follow logs in real-time
+gcloud run services logs tail pinapp-challenge --region us-central1
 ```
-
-**Validate migrations:**
-```bash
-mvn flyway:validate
-```
-
-**Repair migration checksum issues:**
-```bash
-mvn flyway:repair
-```
-
-**Clean database (⚠️ DESTRUCTIVE - removes all data):**
-```bash
-mvn flyway:clean
-```
-
-#### Configuration
-
-Flyway is configured in `application.properties`:
-```properties
-spring.flyway.enabled=true
-spring.flyway.locations=classpath:db/migration
-spring.flyway.baseline-on-migrate=true
-spring.flyway.validate-on-migrate=true
-```
-
-- `baseline-on-migrate=true` - Allows migration of existing databases
-- `validate-on-migrate=true` - Validates applied migrations before running new ones
-
-### API Authentication 🔐
-
-**All API endpoints require HTTP Basic Authentication with encrypted passwords.**
-
-#### Default User Credentials
-
-| Username | Password | Role | 
-|----------|----------|------|
-| `admin` | `password123` | USER |
-
-**⚠️ IMPORTANT:** 
-- Password is encrypted using **BCrypt** (strength 10)
-- In production, override credentials using environment variables
-- Never commit plain-text passwords to version control
-
-#### Endpoint Access Control
-
-**Protected Endpoints** (require authentication):
-- ✅ All `/api/**` endpoints
-
-**Public Endpoints** (no authentication required):
-- `/swagger-ui/**` - API Documentation UI
-- `/api-docs/**` - OpenAPI specification
-- `/actuator/health` - Health check endpoint
-- `/h2-console` - H2 Database Console (dev profile only)
-
-#### Password Security
-
-**BCrypt Encryption:**
-- All passwords are stored as BCrypt hashes
-- Hashing algorithm: BCrypt with salt rounds = 10
-- Passwords are never stored in plain text
-- Each password hash is unique even for identical passwords
-
-**Current BCrypt Hashes:**
-```properties
-# admin / password123
-$2a$10$1AuLGVy1VJjdHCZTJYvpm.XtdDHUZEkmv22cEsnnCLo0YzUbaDXMK
-
-# user / user123
-$2a$10$Fwrq78vMwuR424wv36EO8euPxXrVRM8TBoIhLO64.VK9EOXWME.R.
-```
-
-#### Generating New Password Hashes
-
-**Method 1: Using the BCryptPasswordGenerator utility**
-```bash
-# Generate hashes for predefined passwords
-mvn exec:java -Dexec.mainClass="com.pinapp.challenge.infrastructure.security.BCryptPasswordGenerator"
-
-# Generate hash for a custom password
-mvn exec:java -Dexec.mainClass="com.pinapp.challenge.infrastructure.security.BCryptPasswordGenerator" -Dexec.args="your_password_here"
-```
-
-**Method 2: Using Spring Boot CLI**
-```bash
-spring encodepassword your_password_here
-```
-
-**Method 3: Online BCrypt Generator** (not recommended for production)
-- Visit: https://bcrypt-generator.com/
-- Enter your password
-- Use rounds: 10
-- Copy the generated hash
-
-#### Configuring Users
-
-**Via application.properties:**
-```properties
-# Default user configuration
-app.security.username=admin
-app.security.password=$2a$10$1AuLGVy1VJjdHCZTJYvpm.XtdDHUZEkmv22cEsnnCLo0YzUbaDXMK
-app.security.role=USER
-```
-
-**Via Environment Variables (Production):**
-```bash
-export API_USERNAME=admin
-export API_PASSWORD='$2a$10$1AuLGVy1VJjdHCZTJYvpm.XtdDHUZEkmv22cEsnnCLo0YzUbaDXMK'
-export API_ROLE=USER
-```
-
-**Via Docker Environment Variables:**
-```yaml
-environment:
-  - API_USERNAME=admin
-  - API_PASSWORD=$2a$10$1AuLGVy1VJjdHCZTJYvpm.XtdDHUZEkmv22cEsnnCLo0YzUbaDXMK
-  - API_ROLE=USER
-```
-
-#### Security Best Practices
-
-1. ✅ **Change default passwords** before deploying to production
-2. ✅ **Use strong passwords** (minimum 12 characters, mixed case, numbers, symbols)
-3. ✅ **Use environment variables** for production credentials
-4. ✅ **Never commit** BCrypt hashes of production passwords to Git
-5. ✅ **Rotate passwords** regularly
-6. ✅ **Use different passwords** for each environment (dev, staging, prod)
-7. ✅ **Enable HTTPS** in production to protect credentials in transit
-8. ✅ **Monitor authentication attempts** and implement rate limiting
 
 ## API Documentation (Swagger)
 
@@ -427,38 +177,8 @@ The application includes comprehensive API documentation powered by Swagger/Open
 - **Application Info:** http://localhost:8080/actuator/info
 - **Metrics:** http://localhost:8080/actuator/metrics
 
-### Features:
-- 📖 **Interactive API Documentation** - Test endpoints directly from the browser
-- 🔐 **Authentication Support** - Built-in HTTP Basic auth testing
-- 📝 **Request/Response Examples** - See sample data for all endpoints
-- 🏷️ **Detailed Descriptions** - Complete parameter and response documentation
-- 🎯 **Try It Out** - Execute API calls directly from the documentation
 
-### Using Swagger UI:
-
-1. **Navigate to** http://localhost:8080/swagger-ui.html
-
-2. **Authenticate:**
-   - Click the **"Authorize"** button (lock icon) at the top right
-   - In the popup dialog, enter one of the following credentials:
-     - **Admin User:**
-       - Username: `admin`
-       - Password: `password123`
-     - **Standard User:**
-       - Username: `user`
-       - Password: `user123`
-   - Click **"Authorize"** button
-   - Click **"Close"**
-   - You should now see a closed lock icon (🔒) indicating you're authenticated
-
-3. **Test endpoints:**
-   - Click on any endpoint to expand it
-   - Click **"Try it out"**
-   - Fill in the required parameters
-   - Click **"Execute"**
-   - View the response below
-
-4. **Note:** Without authentication, you'll receive `401 Unauthorized` responses for all API endpoints
+**Note:** Without authentication, you'll receive `401 Unauthorized` responses for all API endpoints
 
 ## Testing
 
@@ -741,12 +461,6 @@ The project includes CircleCI configuration for automated builds and testing.
 - ✅ **Workflows** - Parallel job execution
 - ✅ **Scheduled Builds** - Nightly builds on main branch
 
-### Build Status Badge
-
-Add this to show build status:
-```markdown
-[![CircleCI](https://circleci.com/gh/YOUR_USERNAME/YOUR_REPO.svg?style=svg)](https://circleci.com/gh/YOUR_USERNAME/YOUR_REPO)
-```
 
 ### Local Testing
 
@@ -769,3 +483,5 @@ circleci local execute --job build-and-test
 - Use cases are defined as interfaces in the domain layer
 - Repository adapters handle the mapping between domain models and JPA entities
 - DTOs are used for API communication to maintain clean boundaries
+- Add bundles to README file in order to show the status of CI and other bundle to show the coverage
+- Add security to the API
