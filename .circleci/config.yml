@@ -80,6 +80,11 @@ jobs:
           command: mvn jacoco:report
           when: always
       
+      - run:
+          name: Upload Coverage to Coveralls
+          command: mvn coveralls:report
+          when: always
+      
       - store-test-results
       
       - run:

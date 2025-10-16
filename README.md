@@ -33,6 +33,7 @@ mvn spring-boot:run
 ## Badges
 
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/DonMAriando/pinapp-challenge/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/DonMAriando/pinapp-challenge/tree/main)
+[![Coverage Status](https://coveralls.io/repos/github/DonMAriando/pinapp-challenge/badge.svg?branch=main)](https://coveralls.io/github/DonMAriando/pinapp-challenge?branch=main)
 
 ## Architecture Overview
 
@@ -504,6 +505,7 @@ networks:
 - **JUnit 5**
 - **Mockito**
 - **JaCoCo** (code coverage)
+- **Coveralls** (coverage reporting)
 
 ## CI/CD - CircleCI Integration
 
@@ -530,15 +532,24 @@ The project includes CircleCI configuration for automated builds and testing.
    - Add your project
    - CircleCI will automatically detect `.circleci/config.yml`
 
-2. **Optional: Configure Docker Hub Credentials** (to avoid rate limits)
+2. **Configure Coveralls for Coverage Reports:**
+   - Go to [Coveralls.io](https://coveralls.io/)
+   - Sign in with GitHub/Bitbucket
+   - Add your repository
+   - Copy the repository token
+   - In CircleCI, go to Project Settings → Environment Variables
+   - Add `COVERALLS_REPO_TOKEN` with the token from Coveralls
+
+3. **Optional: Configure Docker Hub Credentials** (to avoid rate limits)
    - Go to Project Settings → Environment Variables
    - Add `DOCKERHUB_USERNAME`
    - Add `DOCKERHUB_PASSWORD`
    - Create a context named `docker-hub-creds`
 
-3. **View Build Results:**
+4. **View Build Results:**
    - Test results available in CircleCI UI
    - Coverage reports stored as artifacts
+   - Coverage trends available on Coveralls.io
    - JAR files available for download
 
 ### CircleCI Features
@@ -546,6 +557,7 @@ The project includes CircleCI configuration for automated builds and testing.
 - ✅ **Caching** - Maven dependencies cached for faster builds
 - ✅ **Test Results** - JUnit reports displayed in UI
 - ✅ **Coverage Reports** - JaCoCo reports as artifacts
+- ✅ **Coveralls Integration** - Automatic coverage reporting to Coveralls.io
 - ✅ **Artifacts** - JAR files and reports stored
 - ✅ **Workflows** - Parallel job execution
 - ✅ **Scheduled Builds** - Nightly builds on main branch
