@@ -1,0 +1,200 @@
+version: 2.1
+
+# Define reusable executors
+executors:
+  java-executor:
+    docker:
+      - image: cimg/openjdk:21.0
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+    working_directory: ~/project
+    environment:
+      MAVEN_OPTS: -Xmx3200m
+
+# Define reusable commands
+commands:
+  restore-maven-cache:
+    description: "Restore Maven dependencies from cache"
+    steps:
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "pom.xml" }}
+            - v1-dependencies-
+
+  save-maven-cache:
+    description: "Save Maven dependencies to cache"
+    steps:
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "pom.xml" }}
+
+  store-test-results:
+    description: "Store test results and artifacts"
+    steps:
+      - store_test_results:
+          path: target/surefire-reports
+      - store_artifacts:
+          path: target/surefire-reports
+          destination: test-results
+      - store_artifacts:
+          path: target/site/jacoco
+          destination: coverage-report
+
+# Define jobs
+jobs:
+  build:
+    executor: java-executor
+    steps:
+      - checkout
+      
+      - restore-maven-cache
+      
+      - run:
+          name: Build Application
+          command: mvn clean compile -DskipTests
+      
+      - save-maven-cache
+      
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - .
+
+  test:
+    executor: java-executor
+    steps:
+      - attach_workspace:
+          at: ~/project
+      
+      - restore-maven-cache
+      
+      - run:
+          name: Run Unit and Integration Tests
+          command: mvn test
+      
+      - run:
+          name: Generate Coverage Report
+          command: mvn jacoco:report
+          when: always
+      
+      - store-test-results
+      
+      - run:
+          name: Verify Coverage Thresholds
+          command: mvn jacoco:check
+          when: always
+
+  verify:
+    executor: java-executor
+    steps:
+      - attach_workspace:
+          at: ~/project
+      
+      - restore-maven-cache
+      
+      - run:
+          name: Run Full Verification
+          command: mvn verify
+      
+      - store-test-results
+
+  package:
+    executor: java-executor
+    steps:
+      - attach_workspace:
+          at: ~/project
+      
+      - restore-maven-cache
+      
+      - run:
+          name: Package Application
+          command: mvn package -DskipTests
+      
+      - store_artifacts:
+          path: target/*.jar
+          destination: artifacts
+      
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - target/*.jar
+
+  security-scan:
+    executor: java-executor
+    steps:
+      - attach_workspace:
+          at: ~/project
+      
+      - restore-maven-cache
+      
+      - run:
+          name: OWASP Dependency Check (Optional)
+          command: |
+            echo "Security scan placeholder"
+            echo "You can add OWASP dependency-check or similar tools here"
+          when: always
+
+# Define workflows
+workflows:
+  version: 2
+  build-test-deploy:
+    jobs:
+      - build:
+          context: docker-hub-creds
+          filters:
+            branches:
+              ignore:
+                - gh-pages
+
+      - test:
+          requires:
+            - build
+          context: docker-hub-creds
+
+      - verify:
+          requires:
+            - test
+          context: docker-hub-creds
+
+      - package:
+          requires:
+            - verify
+          context: docker-hub-creds
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+
+      - security-scan:
+          requires:
+            - package
+          context: docker-hub-creds
+          filters:
+            branches:
+              only:
+                - main
+
+# Scheduled workflow for nightly builds
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - main
+    jobs:
+      - build:
+          context: docker-hub-creds
+      - test:
+          requires:
+            - build
+          context: docker-hub-creds
+      - verify:
+          requires:
+            - test
+          context: docker-hub-creds
+
