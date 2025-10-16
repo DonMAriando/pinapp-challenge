@@ -13,15 +13,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Security configuration for the application.
- * 
+ *
  * Features:
  * - BCrypt password encryption
- * - Multiple users with different roles (configured via properties)
+ * - Single user authentication (configured via properties)
  * - HTTP Basic Authentication
  * - Public access to Swagger, H2 console, and health endpoints
  */
@@ -52,36 +50,20 @@ public class SecurityConfig {
     }
 
     /**
-     * Configures user details service with users from application properties.
-     * Passwords must be BCrypt encrypted.
-     * 
-     * @return UserDetailsService with configured users
+     * Configures user details service with user from application properties.
+     * Password must be BCrypt encrypted.
+     *
+     * @return UserDetailsService with configured user
      */
     @Bean
     public UserDetailsService userDetailsService() {
-        List<UserDetails> users = new ArrayList<>();
-        
-        // Load users from properties
-        for (SecurityProperties.UserCredentials userConfig : securityProperties.getUsers()) {
-            UserDetails user = User.builder()
-                    .username(userConfig.getUsername())
-                    .password(userConfig.getPassword()) // Already BCrypt hashed
-                    .roles(userConfig.getRoles().split(","))
-                    .build();
-            users.add(user);
-        }
-        
-        // Fallback user if no users are configured
-        if (users.isEmpty()) {
-            UserDetails defaultUser = User.builder()
-                    .username("admin")
-                    .password(passwordEncoder().encode("password"))
-                    .roles("ADMIN", "USER")
-                    .build();
-            users.add(defaultUser);
-        }
+        UserDetails user = User.builder()
+                .username(securityProperties.getUsername())
+                .password(securityProperties.getPassword()) // Already BCrypt hashed
+                .roles(securityProperties.getRole())
+                .build();
 
-        return new InMemoryUserDetailsManager(users);
+        return new InMemoryUserDetailsManager(user);
     }
 
     /**

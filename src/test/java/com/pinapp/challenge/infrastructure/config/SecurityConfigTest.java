@@ -67,4 +67,53 @@ public class SecurityConfigTest {
         mockMvc.perform(get("/actuator/health"))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void apiEndpoint_WithInvalidPassword_ShouldReturnUnauthorized() throws Exception {
+        // Given - Wrong password
+        // When & Then
+        mockMvc.perform(post("/api/clients")
+                        .with(httpBasic("admin", "wrongpassword"))
+                        .contentType("application/json")
+                        .content("{\"firstName\":\"Test\",\"lastName\":\"User\",\"age\":30,\"birthDate\":\"1994-01-15\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void apiEndpoint_WithInvalidUsername_ShouldReturnUnauthorized() throws Exception {
+        // Given - Wrong username
+        // When & Then
+        mockMvc.perform(post("/api/clients")
+                        .with(httpBasic("invaliduser", "password123"))
+                        .contentType("application/json")
+                        .content("{\"firstName\":\"Test\",\"lastName\":\"User\",\"age\":30,\"birthDate\":\"1994-01-15\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+
+    @Test
+    void apiEndpoint_WithOldPassword_ShouldReturnUnauthorized() throws Exception {
+        // Given - Old password that should no longer work
+        // When & Then
+        mockMvc.perform(post("/api/clients")
+                        .with(httpBasic("admin", "password")) // Old password
+                        .contentType("application/json")
+                        .content("{\"firstName\":\"Test\",\"lastName\":\"User\",\"age\":30,\"birthDate\":\"1994-01-15\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void metricsEndpoint_WithValidAuth_ShouldSucceed() throws Exception {
+        // When & Then
+        mockMvc.perform(get("/api/clients/metrics")
+                        .with(httpBasic("admin", "password123")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void metricsEndpoint_WithoutAuth_ShouldReturnUnauthorized() throws Exception {
+        // When & Then
+        mockMvc.perform(get("/api/clients/metrics"))
+                .andExpect(status().isUnauthorized());
+    }
 }

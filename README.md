@@ -65,8 +65,7 @@ src/main/java/com/pinapp/challenge/
 - ✅ List all clients with calculated life expectancy
 - ✅ Get client metrics (average age, standard deviation)
 - ✅ Spring Security with HTTP Basic authentication
-- ✅ **BCrypt encrypted passwords** with configurable users and roles
-- ✅ Multiple user support with role-based access control
+- ✅ **BCrypt encrypted passwords** for secure authentication
 - ✅ PostgreSQL database support
 - ✅ H2 in-memory database for development
 - ✅ Flyway database migrations with version control
@@ -319,13 +318,12 @@ spring.flyway.validate-on-migrate=true
 
 #### Default User Credentials
 
-| Username | Password | Roles | Description |
-|----------|----------|-------|-------------|
-| `admin` | `password123` | ADMIN, USER | Full access administrator |
-| `user` | `user123` | USER | Standard user access |
+| Username | Password | Role | 
+|----------|----------|------|
+| `admin` | `password123` | USER |
 
 **⚠️ IMPORTANT:** 
-- Passwords are encrypted using **BCrypt** (strength 10)
+- Password is encrypted using **BCrypt** (strength 10)
 - In production, override credentials using environment variables
 - Never commit plain-text passwords to version control
 
@@ -383,30 +381,25 @@ spring encodepassword your_password_here
 
 **Via application.properties:**
 ```properties
-# User 1 - Admin
-app.security.users[0].username=admin
-app.security.users[0].password=$2a$10$1AuLGVy1VJjdHCZTJYvpm.XtdDHUZEkmv22cEsnnCLo0YzUbaDXMK
-app.security.users[0].roles=ADMIN,USER
-
-# User 2 - Standard User
-app.security.users[1].username=user
-app.security.users[1].password=$2a$10$Fwrq78vMwuR424wv36EO8euPxXrVRM8TBoIhLO64.VK9EOXWME.R.
-app.security.users[1].roles=USER
+# Default user configuration
+app.security.username=admin
+app.security.password=$2a$10$1AuLGVy1VJjdHCZTJYvpm.XtdDHUZEkmv22cEsnnCLo0YzUbaDXMK
+app.security.role=USER
 ```
 
 **Via Environment Variables (Production):**
 ```bash
-export ADMIN_USERNAME=admin
-export ADMIN_PASSWORD='$2a$10$1AuLGVy1VJjdHCZTJYvpm.XtdDHUZEkmv22cEsnnCLo0YzUbaDXMK'
-export ADMIN_ROLES=ADMIN,USER
+export API_USERNAME=admin
+export API_PASSWORD='$2a$10$1AuLGVy1VJjdHCZTJYvpm.XtdDHUZEkmv22cEsnnCLo0YzUbaDXMK'
+export API_ROLE=USER
 ```
 
 **Via Docker Environment Variables:**
 ```yaml
 environment:
-  - ADMIN_USERNAME=admin
-  - ADMIN_PASSWORD=$2a$10$1AuLGVy1VJjdHCZTJYvpm.XtdDHUZEkmv22cEsnnCLo0YzUbaDXMK
-  - ADMIN_ROLES=ADMIN,USER
+  - API_USERNAME=admin
+  - API_PASSWORD=$2a$10$1AuLGVy1VJjdHCZTJYvpm.XtdDHUZEkmv22cEsnnCLo0YzUbaDXMK
+  - API_ROLE=USER
 ```
 
 #### Security Best Practices

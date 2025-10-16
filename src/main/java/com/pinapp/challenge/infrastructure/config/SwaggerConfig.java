@@ -24,6 +24,6 @@ public class SwaggerConfig {
                         .addSecuritySchemes("basicAuth", new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("basic")
-                                .description("HTTP Basic Authentication. Admin: 'admin'/'password123' | User: 'user'/'user123'")));
+                                .description("HTTP Basic Authentication. Default: 'admin'/'password123'")));
     }
 }
