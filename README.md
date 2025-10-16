@@ -30,6 +30,10 @@ mvn spring-boot:run
 # 3. Access the API at http://localhost:8080
 ```
 
+## Badges
+
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/DonMAriando/pinapp-challenge/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/DonMAriando/pinapp-challenge/tree/main)
+
 ## Architecture Overview
 
 This application follows the **Hexagonal Architecture** pattern, which separates the core business logic from external concerns:

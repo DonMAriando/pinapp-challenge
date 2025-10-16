@@ -1,5 +1,6 @@
 version: 2.1
-
+orbs:
+  coveralls: coveralls/coveralls@2.2.5
 # Define reusable executors
 executors:
   java-executor:
