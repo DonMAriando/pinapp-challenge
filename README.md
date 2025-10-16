@@ -162,6 +162,9 @@ gcloud run services logs read pinapp-challenge --region us-central1 --limit 50
 # Follow logs in real-time
 gcloud run services logs tail pinapp-challenge --region us-central1
 ```
+### URL of Application deployed
+https://pinapp-challenge-test-2qn5zhzvaa-uc.a.run.app/swagger-ui/index.html
+
 
 ## API Documentation (Swagger)
 
@@ -461,20 +464,6 @@ The project includes CircleCI configuration for automated builds and testing.
 - ✅ **Workflows** - Parallel job execution
 - ✅ **Scheduled Builds** - Nightly builds on main branch
 
-
-### Local Testing
-
-Test CircleCI configuration locally:
-```bash
-# Install CircleCI CLI
-curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/master/install.sh | bash
-
-# Validate configuration
-circleci config validate
-
-# Run job locally (requires Docker)
-circleci local execute --job build-and-test
-```
 
 ## Development Notes
 
