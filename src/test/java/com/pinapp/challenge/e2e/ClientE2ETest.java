@@ -60,7 +60,7 @@ public class ClientE2ETest {
 
         // When - Create the client via POST endpoint
         MvcResult createResult = mockMvc.perform(post("/api/clients")
-                        .with(httpBasic("admin", "password"))
+                        .with(httpBasic("admin", "password123"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -81,7 +81,7 @@ public class ClientE2ETest {
 
         // And - Retrieve all clients via GET endpoint
         MvcResult getAllResult = mockMvc.perform(get("/api/clients")
-                        .with(httpBasic("admin", "password")))
+                        .with(httpBasic("admin", "password123")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[0].id").value(createdClient.getId()))
@@ -125,19 +125,19 @@ public class ClientE2ETest {
 
         // When - Create all clients
         mockMvc.perform(post("/api/clients")
-                        .with(httpBasic("admin", "password"))
+                        .with(httpBasic("admin", "password123"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(client1)))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/clients")
-                        .with(httpBasic("admin", "password"))
+                        .with(httpBasic("admin", "password123"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(client2)))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/clients")
-                        .with(httpBasic("admin", "password"))
+                        .with(httpBasic("admin", "password123"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(client3)))
                 .andExpect(status().isCreated());
@@ -147,7 +147,7 @@ public class ClientE2ETest {
 
         // And - Get metrics
         MvcResult metricsResult = mockMvc.perform(get("/api/clients/metrics")
-                        .with(httpBasic("admin", "password")))
+                        .with(httpBasic("admin", "password123")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.averageAge").value(30.0))
                 .andExpect(jsonPath("$.standardDeviation").exists())
@@ -192,7 +192,7 @@ public class ClientE2ETest {
 
         // When/Then - Should return 400 Bad Request
         mockMvc.perform(post("/api/clients")
-                        .with(httpBasic("admin", "password"))
+                        .with(httpBasic("admin", "password123"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
@@ -207,14 +207,14 @@ public class ClientE2ETest {
 
         // When/Then - Get all clients should return empty array
         mockMvc.perform(get("/api/clients")
-                        .with(httpBasic("admin", "password")))
+                        .with(httpBasic("admin", "password123")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
 
         // And - Get metrics should return zeros
         mockMvc.perform(get("/api/clients/metrics")
-                        .with(httpBasic("admin", "password")))
+                        .with(httpBasic("admin", "password123")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.averageAge").value(0.0))
                 .andExpect(jsonPath("$.standardDeviation").value(0.0))
@@ -236,7 +236,7 @@ public class ClientE2ETest {
 
         // When - Create client
         MvcResult createResult = mockMvc.perform(post("/api/clients")
-                        .with(httpBasic("admin", "password"))
+                        .with(httpBasic("admin", "password123"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -253,7 +253,7 @@ public class ClientE2ETest {
 
         // And - Verify single client metrics
         MvcResult metricsResult = mockMvc.perform(get("/api/clients/metrics")
-                        .with(httpBasic("admin", "password")))
+                        .with(httpBasic("admin", "password123")))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -305,7 +305,7 @@ public class ClientE2ETest {
 
         // When/Then - Should return 400
         mockMvc.perform(post("/api/clients")
-                        .with(httpBasic("admin", "password"))
+                        .with(httpBasic("admin", "password123"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(incompleteJson))
                 .andExpect(status().isBadRequest());
@@ -326,7 +326,7 @@ public class ClientE2ETest {
 
         // When - Create client
         MvcResult createResult = mockMvc.perform(post("/api/clients")
-                        .with(httpBasic("admin", "password"))
+                        .with(httpBasic("admin", "password123"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -340,7 +340,7 @@ public class ClientE2ETest {
         // Then - Verify it persists across multiple GET requests
         for (int i = 0; i < 3; i++) {
             mockMvc.perform(get("/api/clients")
-                            .with(httpBasic("admin", "password")))
+                            .with(httpBasic("admin", "password123")))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[0].id").value(created.getId()))
                     .andExpect(jsonPath("$[0].firstName").value("Persistence"));

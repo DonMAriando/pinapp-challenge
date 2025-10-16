@@ -33,7 +33,7 @@ public class SecurityConfigTest {
     void apiEndpoint_WithValidAuth_ShouldSucceed() throws Exception {
         // When & Then
         mockMvc.perform(post("/api/clients")
-                        .with(httpBasic("admin", "password"))
+                        .with(httpBasic("admin", "password123"))
                         .contentType("application/json")
                         .content("{\"firstName\":\"Test\",\"lastName\":\"User\",\"age\":30,\"birthDate\":\"1994-01-15\"}"))
                 .andExpect(status().isCreated());
@@ -50,7 +50,7 @@ public class SecurityConfigTest {
     void apiEndpoint_GetWithValidAuth_ShouldSucceed() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/clients")
-                        .with(httpBasic("admin", "password")))
+                        .with(httpBasic("admin", "password123")))
                 .andExpect(status().isOk());
     }
 

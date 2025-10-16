@@ -18,13 +18,12 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Challenge PinApp")
-                        .description("Default credentials: username='admin', password='password'")
                         .version("1.0.0"))
                 .addSecurityItem(new SecurityRequirement().addList("basicAuth"))
                 .components(new Components()
                         .addSecuritySchemes("basicAuth", new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("basic")
-                                .description("HTTP Basic Authentication. Use username: 'admin' and password: 'password'")));
+                                .description("HTTP Basic Authentication. Admin: 'admin'/'password123' | User: 'user'/'user123'")));
     }
 }

@@ -65,6 +65,8 @@ src/main/java/com/pinapp/challenge/
 - ✅ List all clients with calculated life expectancy
 - ✅ Get client metrics (average age, standard deviation)
 - ✅ Spring Security with HTTP Basic authentication
+- ✅ **BCrypt encrypted passwords** with configurable users and roles
+- ✅ Multiple user support with role-based access control
 - ✅ PostgreSQL database support
 - ✅ H2 in-memory database for development
 - ✅ Flyway database migrations with version control
@@ -102,8 +104,10 @@ Content-Type: application/json
 ### 2. Get All Clients (Secured)
 ```http
 GET /api/clients
-Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Authorization: Basic YWRtaW46cGFzc3dvcmQxMjM=
 ```
+
+**Note:** The Authorization header is Base64 encoded: `admin:password123` → `YWRtaW46cGFzc3dvcmQxMjM=`
 
 **Response:**
 ```json
@@ -122,7 +126,7 @@ Authorization: Basic YWRtaW46cGFzc3dvcmQ=
 ### 3. Get Client Metrics (Secured)
 ```http
 GET /api/clients/metrics
-Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Authorization: Basic YWRtaW46cGFzc3dvcmQxMjM=
 ```
 
 **Response:**
@@ -311,19 +315,110 @@ spring.flyway.validate-on-migrate=true
 
 ### API Authentication 🔐
 
-**All API endpoints require HTTP Basic Authentication.**
+**All API endpoints require HTTP Basic Authentication with encrypted passwords.**
 
-**Default Credentials:**
-- **Username:** `admin`
-- **Password:** `password`
+#### Default User Credentials
 
-**Protected Endpoints:**
-- ✅ All `/api/**` endpoints **require authentication**
+| Username | Password | Roles | Description |
+|----------|----------|-------|-------------|
+| `admin` | `password123` | ADMIN, USER | Full access administrator |
+| `user` | `user123` | USER | Standard user access |
 
-**Public Endpoints (no authentication required):**
-- `/swagger-ui/**` - API Documentation
-- `/actuator/health` - Health checks
+**⚠️ IMPORTANT:** 
+- Passwords are encrypted using **BCrypt** (strength 10)
+- In production, override credentials using environment variables
+- Never commit plain-text passwords to version control
+
+#### Endpoint Access Control
+
+**Protected Endpoints** (require authentication):
+- ✅ All `/api/**` endpoints
+
+**Public Endpoints** (no authentication required):
+- `/swagger-ui/**` - API Documentation UI
+- `/api-docs/**` - OpenAPI specification
+- `/actuator/health` - Health check endpoint
 - `/h2-console` - H2 Database Console (dev profile only)
+
+#### Password Security
+
+**BCrypt Encryption:**
+- All passwords are stored as BCrypt hashes
+- Hashing algorithm: BCrypt with salt rounds = 10
+- Passwords are never stored in plain text
+- Each password hash is unique even for identical passwords
+
+**Current BCrypt Hashes:**
+```properties
+# admin / password123
+$2a$10$1AuLGVy1VJjdHCZTJYvpm.XtdDHUZEkmv22cEsnnCLo0YzUbaDXMK
+
+# user / user123
+$2a$10$Fwrq78vMwuR424wv36EO8euPxXrVRM8TBoIhLO64.VK9EOXWME.R.
+```
+
+#### Generating New Password Hashes
+
+**Method 1: Using the BCryptPasswordGenerator utility**
+```bash
+# Generate hashes for predefined passwords
+mvn exec:java -Dexec.mainClass="com.pinapp.challenge.infrastructure.security.BCryptPasswordGenerator"
+
+# Generate hash for a custom password
+mvn exec:java -Dexec.mainClass="com.pinapp.challenge.infrastructure.security.BCryptPasswordGenerator" -Dexec.args="your_password_here"
+```
+
+**Method 2: Using Spring Boot CLI**
+```bash
+spring encodepassword your_password_here
+```
+
+**Method 3: Online BCrypt Generator** (not recommended for production)
+- Visit: https://bcrypt-generator.com/
+- Enter your password
+- Use rounds: 10
+- Copy the generated hash
+
+#### Configuring Users
+
+**Via application.properties:**
+```properties
+# User 1 - Admin
+app.security.users[0].username=admin
+app.security.users[0].password=$2a$10$1AuLGVy1VJjdHCZTJYvpm.XtdDHUZEkmv22cEsnnCLo0YzUbaDXMK
+app.security.users[0].roles=ADMIN,USER
+
+# User 2 - Standard User
+app.security.users[1].username=user
+app.security.users[1].password=$2a$10$Fwrq78vMwuR424wv36EO8euPxXrVRM8TBoIhLO64.VK9EOXWME.R.
+app.security.users[1].roles=USER
+```
+
+**Via Environment Variables (Production):**
+```bash
+export ADMIN_USERNAME=admin
+export ADMIN_PASSWORD='$2a$10$1AuLGVy1VJjdHCZTJYvpm.XtdDHUZEkmv22cEsnnCLo0YzUbaDXMK'
+export ADMIN_ROLES=ADMIN,USER
+```
+
+**Via Docker Environment Variables:**
+```yaml
+environment:
+  - ADMIN_USERNAME=admin
+  - ADMIN_PASSWORD=$2a$10$1AuLGVy1VJjdHCZTJYvpm.XtdDHUZEkmv22cEsnnCLo0YzUbaDXMK
+  - ADMIN_ROLES=ADMIN,USER
+```
+
+#### Security Best Practices
+
+1. ✅ **Change default passwords** before deploying to production
+2. ✅ **Use strong passwords** (minimum 12 characters, mixed case, numbers, symbols)
+3. ✅ **Use environment variables** for production credentials
+4. ✅ **Never commit** BCrypt hashes of production passwords to Git
+5. ✅ **Rotate passwords** regularly
+6. ✅ **Use different passwords** for each environment (dev, staging, prod)
+7. ✅ **Enable HTTPS** in production to protect credentials in transit
+8. ✅ **Monitor authentication attempts** and implement rate limiting
 
 ## API Documentation (Swagger)
 
@@ -352,9 +447,13 @@ The application includes comprehensive API documentation powered by Swagger/Open
 
 2. **Authenticate:**
    - Click the **"Authorize"** button (lock icon) at the top right
-   - In the popup dialog, enter:
-     - **Username:** `admin`
-     - **Password:** `password`
+   - In the popup dialog, enter one of the following credentials:
+     - **Admin User:**
+       - Username: `admin`
+       - Password: `password123`
+     - **Standard User:**
+       - Username: `user`
+       - Password: `user123`
    - Click **"Authorize"** button
    - Click **"Close"**
    - You should now see a closed lock icon (🔒) indicating you're authenticated
